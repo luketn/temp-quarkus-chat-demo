@@ -15,6 +15,6 @@ public class GreetingResource {
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     public String hello() {
-        return c3p0.greet();
+        return c3p0.greet("Human");
     }
 }

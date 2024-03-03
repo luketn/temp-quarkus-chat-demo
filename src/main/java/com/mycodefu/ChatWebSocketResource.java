@@ -1,6 +1,7 @@
 package com.mycodefu;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.websocket.OnClose;
 import jakarta.websocket.OnError;
 import jakarta.websocket.OnMessage;
@@ -8,47 +9,42 @@ import jakarta.websocket.OnOpen;
 import jakarta.websocket.server.PathParam;
 import jakarta.websocket.server.ServerEndpoint;
 import jakarta.websocket.Session;
+import org.eclipse.microprofile.context.ManagedExecutor;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.io.IOException;
 
-@ServerEndpoint("/chat/{username}")
+@ServerEndpoint("/chat/{name}")
 @ApplicationScoped
 public class ChatWebSocketResource {
 
-    Map<String, Session> sessions = new ConcurrentHashMap<>();
+    @Inject
+    C3P0 c3p0;
+    @Inject
+    ManagedExecutor managedExecutor;
 
     @OnOpen
-    public void onOpen(Session session, @PathParam("username") String username) {
-        broadcast("User " + username + " joined");
-        sessions.put(username, session);
+    public void onOpen(Session session, @PathParam("name") String name) {
+        managedExecutor.runAsync(() -> {
+            String greeting = c3p0.greet(name);
+            try {
+                session.getBasicRemote().sendText(greeting);
+            } catch (IOException e) {}
+        });
     }
 
     @OnClose
     public void onClose(Session session, @PathParam("username") String username) {
-        sessions.remove(username);
-        broadcast("User " + username + " left");
+
     }
 
     @OnError
     public void onError(Session session, @PathParam("username") String username, Throwable throwable) {
-        sessions.remove(username);
-        broadcast("User " + username + " left on error: " + throwable);
+
     }
 
     @OnMessage
     public void onMessage(String message, @PathParam("username") String username) {
-        broadcast(">> " + username + ": " + message);
-    }
 
-    private void broadcast(String message) {
-        sessions.values().forEach(s -> {
-            s.getAsyncRemote().sendObject(message, result ->  {
-                if (result.getException() != null) {
-                    System.out.println("Unable to send message: " + result.getException());
-                }
-            });
-        });
     }
 
 }
