@@ -43,8 +43,13 @@ public class ChatWebSocketResource {
     }
 
     @OnMessage
-    public void onMessage(String message, @PathParam("username") String username) {
-
+    public void onMessage(Session session, String message) {
+        managedExecutor.runAsync(() -> {
+            String response = c3p0.chat(message);
+            try {
+                session.getBasicRemote().sendText(response);
+            } catch (IOException e) {}
+        });
     }
 
 }
