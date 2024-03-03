@@ -1,4 +1,4 @@
-package org.acme;
+package com.mycodefu;
 
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;

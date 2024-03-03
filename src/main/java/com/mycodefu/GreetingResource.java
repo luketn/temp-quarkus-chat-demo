@@ -1,4 +1,4 @@
-package org.acme;
+package com.mycodefu;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
